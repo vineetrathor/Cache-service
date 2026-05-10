@@ -61,7 +61,7 @@ public class RedisCacheController {
             @ApiResponse(responseCode = "400", description = "Invalid request - value is missing")
     })
     @PutMapping("/{key}")
-    public ResponseEntity<CacheEntry> putCache(
+    public ResponseEntity<Map<String, String>> putCache(
             @Parameter(description = "Unique cache key", required = true)
             @PathVariable String key,
             @Parameter(description = "Request body containing the value to cache", required = true)
@@ -75,8 +75,12 @@ public class RedisCacheController {
             return ResponseEntity.badRequest().build();
         }
         
-        CacheEntry savedEntry = redisCacheService.put(key, value);
-        return ResponseEntity.ok(savedEntry);
+        String savedValue = redisCacheService.put(key, value);
+        return ResponseEntity.ok(Map.of(
+                "key", key,
+                "value", savedValue,
+                "message", "Saved to MySQL and cached in Redis"
+        ));
     }
     
     /**
@@ -103,12 +107,12 @@ public class RedisCacheController {
         
         log.info("🔍 Redis GET request for key: {}", key);
         
-        Optional<String> value = redisCacheService.get(key);
+        String value = redisCacheService.get(key);
         
-        if (value.isPresent()) {
+        if (value != null) {
             return ResponseEntity.ok(Map.of(
                     "key", key,
-                    "value", value.get(),
+                    "value", value,
                     "source", "Redis Cache (if this is 2nd+ call) or MySQL (if 1st call)"
             ));
         } else {

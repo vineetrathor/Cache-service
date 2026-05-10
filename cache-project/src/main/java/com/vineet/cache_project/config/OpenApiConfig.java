@@ -21,7 +21,7 @@ public class OpenApiConfig {
     public OpenAPI cacheServiceOpenAPI() {
         // Define server information
         Server localServer = new Server();
-        localServer.setUrl("http://localhost:8080");
+        localServer.setUrl("http://localhost:8081");
         localServer.setDescription("Local Development Server");
         
         // Define contact information

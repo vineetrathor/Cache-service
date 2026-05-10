@@ -1,0 +1,13 @@
+Timestamp,Method,Endpoint,Key,Status,Duration(ms),Cache Type,Performance
+2026-05-10 21:09:24,PUT,/api/redis-cache/user126,user126,200,221,MySQL + Redis,Fair
+2026-05-10 21:10:54,GET,/api/redis-cache/user126,user126,200,13,Redis Cache,Excellent
+2026-05-10 21:16:29,PUT,/api/redis-cache/user127,user127,200,209,MySQL + Redis,Fair
+2026-05-10 21:16:50,GET,/api/redis-cache/user126,user126,200,37,Redis Cache,Good
+2026-05-10 21:23:30,GET,/api/redis-cache,-,200,500,N/A,Slow
+2026-05-10 21:23:45,GET,/api/redis-cache/user127,user127,200,253,MySQL + Redis,Fair
+2026-05-10 21:24:00,GET,/api/redis-cache/user127,user127,200,16,Redis Cache,Excellent
+2026-05-10 21:26:00,PUT,/api/redis-cache/user128,user128,200,189,MySQL + Redis,Fair
+2026-05-10 21:26:14,GET,/api/redis-cache/user128,user128,200,9,Redis Cache,Excellent
+2026-05-10 21:26:15,GET,/api/redis-cache/user128,user128,200,9,Redis Cache,Excellent
+2026-05-10 21:30:07,PUT,/api/redis-cache/user129,user129,200,60,MySQL + Redis,Good
+2026-05-10 21:30:29,GET,/api/redis-cache/user129,user129,200,9,Redis Cache,Excellent

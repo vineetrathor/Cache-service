@@ -68,7 +68,7 @@ public class RedisCacheService {
      */
     @Transactional
     @CachePut(value = "cacheEntries", key = "#key")
-    public CacheEntry put(String key, String value) {
+    public String put(String key, String value) {
         log.info("🔵 REDIS PUT - Key: {} | Saving to MySQL and updating Redis cache", key);
         
         Optional<CacheEntry> existingEntry = cacheRepository.findByKey(key);
@@ -77,14 +77,16 @@ public class RedisCacheService {
             CacheEntry entry = existingEntry.get();
             entry.setValue(value);
             log.info("📝 Updating existing entry in MySQL for key: {}", key);
-            return cacheRepository.save(entry);
+            cacheRepository.save(entry);
+            return value; // Return the String value to cache in Redis
         } else {
             CacheEntry newEntry = CacheEntry.builder()
                     .key(key)
                     .value(value)
                     .build();
             log.info("✨ Creating new entry in MySQL for key: {}", key);
-            return cacheRepository.save(newEntry);
+            cacheRepository.save(newEntry);
+            return value; // Return the String value to cache in Redis
         }
     }
     
@@ -105,8 +107,8 @@ public class RedisCacheService {
      * @param key Cache key to retrieve
      * @return Optional with value if found
      */
-    @Cacheable(value = "cacheEntries", key = "#key", unless = "#result == null || !#result.isPresent()")
-    public Optional<String> get(String key) {
+    @Cacheable(value = "cacheEntries", key = "#key", unless = "#result == null")
+    public String get(String key) {
         log.info("🔍 REDIS GET - Key: {} | Checking Redis first...", key);
         
         // This code only runs on Cache MISS
@@ -115,10 +117,10 @@ public class RedisCacheService {
         
         if (entry.isPresent()) {
             log.info("✅ MySQL HIT for key: {} | Caching in Redis for next time", key);
-            return Optional.of(entry.get().getValue());
+            return entry.get().getValue();
         } else {
             log.info("❌ MySQL MISS for key: {} | Not found anywhere", key);
-            return Optional.empty();
+            return null;
         }
     }
     
