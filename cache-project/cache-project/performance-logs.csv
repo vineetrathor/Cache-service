@@ -11,3 +11,52 @@ Timestamp,Method,Endpoint,Key,Status,Duration(ms),Cache Type,Performance
 2026-05-10 21:26:15,GET,/api/redis-cache/user128,user128,200,9,Redis Cache,Excellent
 2026-05-10 21:30:07,PUT,/api/redis-cache/user129,user129,200,60,MySQL + Redis,Good
 2026-05-10 21:30:29,GET,/api/redis-cache/user129,user129,200,9,Redis Cache,Excellent
+2026-05-15 20:46:48,GET,/api/cache-patterns/health,-,200,15,N/A,Excellent
+2026-05-15 20:58:14,PUT,/api/cache-patterns/write-through/user1,-,200,2667,N/A,Very Slow
+2026-05-15 20:59:46,PUT,/api/cache-patterns/write-back/user1,-,200,35,N/A,Good
+2026-05-15 21:00:16,PUT,/api/cache-patterns/write-around/user1,-,200,66,N/A,Good
+2026-05-15 21:00:45,PUT,/api/cache-patterns/cache-aside/user1,-,200,31,N/A,Good
+2026-05-15 21:10:54,PUT,/api/cache-patterns/write-through/user2,-,200,46,N/A,Good
+2026-05-15 21:11:17,PUT,/api/cache-patterns/write-back/user2,-,200,124,N/A,Fair
+2026-05-15 21:11:58,PUT,/api/cache-patterns/write-around/user2,-,200,42,N/A,Good
+2026-05-15 21:11:59,PUT,/api/cache-patterns/write-around/user2,-,200,34,N/A,Good
+2026-05-15 21:12:11,PUT,/api/cache-patterns/cache-aside/user2,-,200,35,N/A,Good
+2026-05-15 21:12:42,GET,/api/cache-patterns/write-through/user2,-,200,34,N/A,Good
+2026-05-15 21:13:03,GET,/api/cache-patterns/write-back/user2,-,200,13,N/A,Excellent
+2026-05-15 21:13:13,GET,/api/cache-patterns/write-around/user2,-,200,52,N/A,Good
+2026-05-15 21:13:27,GET,/api/cache-patterns/write-around/user2,-,200,51,N/A,Good
+2026-05-15 21:13:38,GET,/api/cache-patterns/cache-aside/user2,-,200,38,N/A,Good
+2026-05-15 21:21:35,GET,/api/cache-patterns/cache-aside/user2,-,200,6,N/A,Excellent
+2026-05-15 21:21:35,GET,/api/cache-patterns/cache-aside/user2,-,200,6,N/A,Excellent
+2026-05-15 21:21:36,GET,/api/cache-patterns/cache-aside/user2,-,200,13,N/A,Excellent
+2026-05-15 21:21:36,GET,/api/cache-patterns/cache-aside/user2,-,200,6,N/A,Excellent
+2026-05-15 21:21:36,GET,/api/cache-patterns/cache-aside/user2,-,200,4,N/A,Excellent
+2026-05-15 21:27:05,PUT,/api/cache-patterns/write-around/product1,-,200,58,N/A,Good
+2026-05-15 21:27:35,GET,/api/cache-patterns/write-around/product1,-,200,43,N/A,Good
+2026-05-15 21:27:36,GET,/api/cache-patterns/write-around/product1,-,200,34,N/A,Good
+2026-05-15 21:27:36,GET,/api/cache-patterns/write-around/product1,-,200,16,N/A,Excellent
+2026-05-15 21:28:01,GET,/api/cache-patterns/write-around/product1,-,200,18,N/A,Excellent
+2026-05-15 21:29:06,PUT,/api/cache-patterns/write-back/metric1,-,200,16,N/A,Excellent
+2026-05-15 21:29:10,PUT,/api/cache-patterns/write-back/metric1,-,200,12,N/A,Excellent
+2026-05-15 21:29:14,PUT,/api/cache-patterns/write-back/metric1,-,200,15,N/A,Excellent
+2026-05-15 21:29:26,GET,/api/cache-patterns/write-back/metric1,-,200,9,N/A,Excellent
+2026-05-15 21:31:07,GET,/api/cache-patterns/compare/user2,-,200,109,N/A,Fair
+2026-05-15 21:31:30,GET,/api/cache-patterns/compare/user2,-,200,62,N/A,Good
+2026-05-15 21:31:31,GET,/api/cache-patterns/compare/user2,-,200,24,N/A,Good
+2026-05-15 21:31:31,GET,/api/cache-patterns/compare/user2,-,200,53,N/A,Good
+2026-05-15 21:31:31,GET,/api/cache-patterns/compare/user2,-,200,29,N/A,Good
+2026-05-15 21:31:31,GET,/api/cache-patterns/compare/user2,-,200,22,N/A,Good
+2026-05-15 21:31:31,GET,/api/cache-patterns/compare/user2,-,200,33,N/A,Good
+2026-05-15 21:31:32,GET,/api/cache-patterns/compare/user2,-,200,33,N/A,Good
+2026-05-15 21:31:32,GET,/api/cache-patterns/compare/user2,-,200,21,N/A,Good
+2026-05-15 21:31:32,GET,/api/cache-patterns/compare/user2,-,200,23,N/A,Good
+2026-05-15 21:31:32,GET,/api/cache-patterns/compare/user2,-,200,24,N/A,Good
+2026-05-15 21:31:32,GET,/api/cache-patterns/compare/user2,-,200,68,N/A,Good
+2026-05-15 21:31:33,GET,/api/cache-patterns/compare/user2,-,200,81,N/A,Good
+2026-05-15 21:31:35,GET,/api/cache-patterns/compare/user2,-,200,25,N/A,Good
+2026-05-15 21:34:42,DELETE,/api/cache-patterns/write-through/user1,-,200,67,N/A,Good
+2026-05-15 21:34:55,DELETE,/api/cache-patterns/write-back/user1,-,200,33,N/A,Good
+2026-05-15 21:35:06,DELETE,/api/cache-patterns/write-around/user1,-,200,19,N/A,Excellent
+2026-05-15 21:35:15,DELETE,/api/cache-patterns/cache-aside/user1,-,200,12,N/A,Excellent
+2026-05-15 21:35:25,GET,/api/cache-patterns/write-around/user1,-,200,15,N/A,Excellent
+2026-05-15 21:35:56,GET,/api/cache-patterns/write-through/user1,-,200,16,N/A,Excellent

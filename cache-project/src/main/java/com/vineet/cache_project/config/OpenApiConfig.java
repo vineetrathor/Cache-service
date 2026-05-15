@@ -36,10 +36,16 @@ public class OpenApiConfig {
         
         // Define API information
         Info info = new Info()
-                .title("Cache Service API")
-                .version("1.0.0")
-                .description("A simple cache service built with Spring Boot and MySQL. " +
-                        "This service provides REST endpoints to store, retrieve, and manage cached data.")
+                .title("Cache Service API - Multi-Pattern Implementation")
+                .version("2.0.0")
+                .description("A comprehensive cache service built with Spring Boot, MySQL, and Redis. " +
+                        "This service implements 4 different caching patterns:\n\n" +
+                        "1. **Write-Through**: Immediate caching on write, fast first reads\n" +
+                        "2. **Cache-Aside**: Lazy loading, memory efficient\n" +
+                        "3. **Write-Around**: Selective caching, prevents cache pollution\n" +
+                        "4. **Write-Back**: Async batch writes, highest throughput\n\n" +
+                        "Each pattern has dedicated endpoints for PUT/GET/DELETE operations. " +
+                        "Use the comparison endpoint to test all patterns side-by-side.")
                 .contact(contact)
                 .license(license);
         

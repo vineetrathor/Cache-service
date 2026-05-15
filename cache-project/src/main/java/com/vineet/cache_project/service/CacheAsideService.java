@@ -5,7 +5,6 @@ import com.vineet.cache_project.repository.CacheRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +13,16 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Redis-Enabled Cache Service with 2-TIER CACHING SYSTEM
+ * CACHE-ASIDE PATTERN (Lazy Loading)
+ * 
+ * Pattern: Cache-Aside / Lazy Loading
+ * 
+ * CHARACTERISTICS:
+ * - Application manages cache explicitly
+ * - Data loaded into cache ONLY when read
+ * - Writes go ONLY to database (cache NOT updated)
+ * - Cache populated on first read (lazy)
+ * - Memory efficient (only caches what's read)
  * 
  * ARCHITECTURE:
  * ┌─────────────────────────────────────────────────────┐
@@ -23,53 +31,75 @@ import java.util.Optional;
  *                  ▼
  * ┌─────────────────────────────────────────────────────┐
  * │  TIER 1: Redis Cache (In-Memory) - FAST (~5ms)     │
- * │  - Stores frequently accessed data                  │
+ * │  - Populated ONLY on reads                          │
  * │  - TTL: 10 minutes                                  │
- * │  - Volatile (lost on restart)                       │
+ * │  - Memory efficient                                 │
  * └────────────────┬────────────────────────────────────┘
  *                  │ Cache MISS
  *                  ▼
  * ┌─────────────────────────────────────────────────────┐
  * │  TIER 2: MySQL Database - PERSISTENT (~50ms)       │
- * │  - Permanent storage                                │
- * │  - Slower but reliable                              │
+ * │  - Source of truth                                  │
+ * │  - Always up-to-date                                │
  * └─────────────────────────────────────────────────────┘
  * 
  * FLOW:
- * GET: Redis → (if miss) → MySQL → Store in Redis → Return
- * PUT: MySQL → Update Redis → Return
- * DELETE: MySQL → Evict from Redis → Return
+ * PUT: MySQL (save) → Return (NO caching)
+ * GET: Redis (check) → MISS → MySQL (query) → Redis (cache) → Return
+ * GET: Redis (check) → HIT → Return (fast!)
+ * DELETE: MySQL (delete) → Redis (evict) → Return
  * 
- * Spring Cache Annotations:
- * @Cacheable: Check cache before method execution
- * @CachePut: Update cache after method execution
- * @CacheEvict: Remove from cache
+ * USE CASES:
+ * - Read-heavy workloads with unpredictable access patterns
+ * - Data that's written frequently but read occasionally
+ * - Memory-constrained environments
+ * - When you want to avoid caching unused data
+ * 
+ * PROS:
+ * ✅ Memory efficient (only caches read data)
+ * ✅ No wasted cache space
+ * ✅ Simple to implement
+ * ✅ Cache failures don't affect writes
+ * 
+ * CONS:
+ * ❌ First read is slow (cache miss)
+ * ❌ Cache stampede risk (many requests for same uncached data)
+ * ❌ Stale data possible (if DB updated externally)
+ * 
+ * CRITICAL: Returns String type to avoid serialization issues!
+ * - PUT returns String (the value saved)
+ * - GET returns String (from cache or DB)
+ * - Both methods cache and return the SAME TYPE
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RedisCacheService {
+public class CacheAsideService {
     
     private final CacheRepository cacheRepository;
     
     /**
-     * PUT operation with Redis caching
+     * PUT operation WITHOUT caching (Cache-Aside pattern)
      * 
-     * @CachePut: Always executes method AND updates Redis
+     * NO @CachePut annotation - cache is NOT updated on write
      * 
      * Flow:
-     * 1. Save/Update in MySQL (persistent)
-     * 2. Update Redis cache (fast access)
-     * 3. Return saved entry
+     * 1. Save to MySQL (persistent storage)
+     * 2. Return value (Redis NOT touched)
+     * 3. Cache will be populated on first GET
+     * 
+     * Why no caching on PUT?
+     * - Memory efficient: Don't cache data that might never be read
+     * - Lazy loading: Cache only when actually needed
+     * - Avoids cache pollution
      * 
      * @param key Cache key
      * @param value Value to store
-     * @return Saved CacheEntry
+     * @return String value (for consistent type with GET)
      */
     @Transactional
-    @CachePut(value = "cacheEntries", key = "#key")
     public String put(String key, String value) {
-        log.info("🔵 REDIS PUT - Key: {} | Saving to MySQL and updating Redis cache", key);
+        log.info("🔵 CACHE-ASIDE PUT - Key: {} | Saving to MySQL ONLY (no caching)", key);
         
         Optional<CacheEntry> existingEntry = cacheRepository.findByKey(key);
         
@@ -78,7 +108,6 @@ public class RedisCacheService {
             entry.setValue(value);
             log.info("📝 Updating existing entry in MySQL for key: {}", key);
             cacheRepository.save(entry);
-            return value; // Return the String value to cache in Redis
         } else {
             CacheEntry newEntry = CacheEntry.builder()
                     .key(key)
@@ -86,41 +115,52 @@ public class RedisCacheService {
                     .build();
             log.info("✨ Creating new entry in MySQL for key: {}", key);
             cacheRepository.save(newEntry);
-            return value; // Return the String value to cache in Redis
         }
+        
+        log.info("✅ Saved to MySQL. Redis NOT updated (will cache on first GET)");
+        return value; // Return String type (consistent with GET)
     }
     
     /**
-     * GET operation with Redis caching
+     * GET operation with lazy caching (Cache-Aside pattern)
      * 
-     * @Cacheable: Checks Redis FIRST
+     * @Cacheable: Checks Redis FIRST, caches on miss
      * 
      * Flow:
      * 1. Check Redis cache
-     * 2. If FOUND (Cache HIT) → Return immediately ⚡ FAST!
-     * 3. If NOT FOUND (Cache MISS) → Query MySQL → Cache in Redis → Return
+     * 2. If FOUND (Cache HIT) → Return immediately ⚡ FAST! (~5ms)
+     * 3. If NOT FOUND (Cache MISS) → Query MySQL (~50ms)
+     * 4. Cache result in Redis for next time
+     * 5. Return value
      * 
      * Performance:
-     * - First call: ~50ms (MySQL query)
+     * - First call after PUT: ~50ms (MySQL query + cache)
      * - Subsequent calls: ~5ms (Redis cache) - 10x FASTER!
      * 
+     * Difference from Write-Through:
+     * - Write-Through: First GET is fast (already cached on PUT)
+     * - Cache-Aside: First GET is slow (cache miss, then cached)
+     * 
+     * CRITICAL: Returns String (not Optional<String>) to avoid serialization issues!
+     * 
      * @param key Cache key to retrieve
-     * @return Optional with value if found
+     * @return String value if found, null if not found
      */
-    @Cacheable(value = "cacheEntries", key = "#key", unless = "#result == null")
+    @Cacheable(value = "cacheAside", key = "#key", unless = "#result == null")
     public String get(String key) {
-        log.info("🔍 REDIS GET - Key: {} | Checking Redis first...", key);
+        log.info("🔍 CACHE-ASIDE GET - Key: {} | Checking Redis first...", key);
         
         // This code only runs on Cache MISS
-        log.info("❌ Redis MISS for key: {} | Querying MySQL...", key);
+        log.info("❌ Redis MISS for key: {} | Querying MySQL (lazy loading)...", key);
         Optional<CacheEntry> entry = cacheRepository.findByKey(key);
         
         if (entry.isPresent()) {
+            String value = entry.get().getValue();
             log.info("✅ MySQL HIT for key: {} | Caching in Redis for next time", key);
-            return entry.get().getValue();
+            return value; // Spring Cache will cache this String in Redis
         } else {
             log.info("❌ MySQL MISS for key: {} | Not found anywhere", key);
-            return null;
+            return null; // unless="#result == null" prevents caching null
         }
     }
     
@@ -131,16 +171,16 @@ public class RedisCacheService {
      * 
      * Flow:
      * 1. Delete from MySQL
-     * 2. Evict from Redis cache
+     * 2. Evict from Redis cache (if present)
      * 3. Return success status
      * 
      * @param key Cache key to delete
      * @return true if deleted, false if not found
      */
     @Transactional
-    @CacheEvict(value = "cacheEntries", key = "#key")
+    @CacheEvict(value = "cacheAside", key = "#key")
     public boolean delete(String key) {
-        log.info("🗑️ REDIS DELETE - Key: {} | Removing from MySQL and Redis", key);
+        log.info("🗑️ CACHE-ASIDE DELETE - Key: {} | Removing from MySQL and Redis", key);
         
         if (cacheRepository.existsByKey(key)) {
             cacheRepository.deleteByKey(key);
@@ -170,7 +210,7 @@ public class RedisCacheService {
      * @return Number of entries deleted
      */
     @Transactional
-    @CacheEvict(value = "cacheEntries", allEntries = true)
+    @CacheEvict(value = "cacheAside", allEntries = true)
     public long clearAll() {
         log.info("🧹 Clearing all entries from MySQL and Redis");
         long count = cacheRepository.count();

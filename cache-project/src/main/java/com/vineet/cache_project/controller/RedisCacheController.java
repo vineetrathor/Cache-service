@@ -1,7 +1,7 @@
 package com.vineet.cache_project.controller;
 
 import com.vineet.cache_project.entity.CacheEntry;
-import com.vineet.cache_project.service.RedisCacheService;
+import com.vineet.cache_project.service.WriteThroughCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -46,7 +46,7 @@ import java.util.Optional;
 @Tag(name = "Redis Cache Controller", description = "High-performance cache APIs with Redis")
 public class RedisCacheController {
     
-    private final RedisCacheService redisCacheService;
+    private final WriteThroughCacheService writeThroughCacheService;
     
     /**
      * PUT endpoint with Redis caching
@@ -75,7 +75,7 @@ public class RedisCacheController {
             return ResponseEntity.badRequest().build();
         }
         
-        String savedValue = redisCacheService.put(key, value);
+        String savedValue = writeThroughCacheService.put(key, value);
         return ResponseEntity.ok(Map.of(
                 "key", key,
                 "value", savedValue,
@@ -107,7 +107,7 @@ public class RedisCacheController {
         
         log.info("🔍 Redis GET request for key: {}", key);
         
-        String value = redisCacheService.get(key);
+        String value = writeThroughCacheService.get(key);
         
         if (value != null) {
             return ResponseEntity.ok(Map.of(
@@ -139,7 +139,7 @@ public class RedisCacheController {
         
         log.info("🗑️ Redis DELETE request for key: {}", key);
         
-        boolean deleted = redisCacheService.delete(key);
+        boolean deleted = writeThroughCacheService.delete(key);
         
         if (deleted) {
             return ResponseEntity.ok(Map.of(
@@ -163,7 +163,7 @@ public class RedisCacheController {
     public ResponseEntity<List<CacheEntry>> getAllCache() {
         log.info("📋 Redis GET ALL request");
         
-        List<CacheEntry> entries = redisCacheService.getAllEntries();
+        List<CacheEntry> entries = writeThroughCacheService.getAllEntries();
         return ResponseEntity.ok(entries);
     }
     
@@ -179,7 +179,7 @@ public class RedisCacheController {
     public ResponseEntity<Map<String, Object>> clearAllCache() {
         log.info("🧹 Redis CLEAR ALL request");
         
-        long count = redisCacheService.clearAll();
+        long count = writeThroughCacheService.clearAll();
         return ResponseEntity.ok(Map.of(
                 "message", "Cache cleared from MySQL and Redis",
                 "deletedCount", count

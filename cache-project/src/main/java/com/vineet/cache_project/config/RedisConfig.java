@@ -17,15 +17,25 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 
 /**
- * Redis Cache Configuration
- * 
- * This class configures Redis as our caching layer.
- * 
+ * Redis Cache Configuration for Multiple Cache Patterns
+ *
+ * This class configures Redis as our caching layer with support for
+ * multiple caching patterns (Write-Through, Cache-Aside, Write-Around, Write-Back).
+ *
  * Key Concepts:
  * - @EnableCaching: Enables Spring's annotation-driven cache management
  * - RedisTemplate: Provides operations to interact with Redis
  * - RedisCacheManager: Manages cache operations with Redis backend
  * - TTL (Time To Live): Cache entries expire after 10 minutes
+ *
+ * Cache Names:
+ * - "cacheEntries": Write-Through pattern cache
+ * - "cacheAside": Cache-Aside pattern cache
+ * - "writeAround": Write-Around pattern cache
+ * - "writeBack": Write-Back pattern cache
+ *
+ * All caches use the same configuration (TTL, serialization) but are
+ * logically separated by name for different caching strategies.
  */
 @Configuration
 @EnableCaching
